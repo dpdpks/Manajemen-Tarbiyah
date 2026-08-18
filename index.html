@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Monitoring Pelaksanaan UPA</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#64748b;--primary:#123b7a;--blue:#2563eb;--green:#16a34a;--red:#ef476f;--line:#e5e7eb}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text)}
@@ -41,8 +43,8 @@ select,input,button{height:42px;border:1px solid var(--line);border-radius:10px;
 .photo-box a{color:#2563eb;font-weight:700;text-decoration:none}
 .att-table{width:100%;border-collapse:collapse;font-size:13px}.att-table th,.att-table td{padding:8px 9px;border-bottom:1px solid #e5e7eb}.att-table th{background:#f1f5f9;text-align:left}.att-table td:last-child{text-align:center;font-weight:800}
 .hadir{color:#16a34a}.izin{color:#d97706}.sakit{color:#dc2626}.lain{color:#64748b}
-.print-btn{background:#0f766e}
-.documentation-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.print-btn{background:#0f766e}.pdf-btn{background:#b91c1c}.pdf-btn:hover{background:#991b1b}.export-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.export-row button{height:38px}
+ .pdf-menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:15px}.pdf-menu-card{border:1px solid #dbe3ee;border-radius:14px;padding:18px;background:#f8fafc}.pdf-menu-card h3{margin:0 0 7px;color:#123b7a;font-size:17px}.pdf-menu-card p{margin:0 0 13px;color:#64748b;font-size:13px;line-height:1.5}.pdf-menu-card button{width:100%;height:44px;background:#b91c1c}.pdf-menu-card button:hover{background:#991b1b}.pdf-filter{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:10px;margin-bottom:12px}@media(max-width:700px){.pdf-menu-grid{grid-template-columns:1fr}.pdf-filter{grid-template-columns:1fr}}.documentation-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 .doc-card{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 3px 12px rgba(15,23,42,.05)}
 .doc-photo{height:245px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .doc-photo img{width:100%;height:100%;object-fit:cover;transition:transform .2s}
@@ -107,6 +109,7 @@ body.login-locked{overflow:hidden}
     <button class="menu-btn active" data-menu="monitoring">📊 Monitoring UPA</button>
     <button class="menu-btn" data-menu="detail">📋 Laporan UPA Detail</button>
     <button class="menu-btn" data-menu="documentation">📸 Dokumentasi UPA</button>
+    <button class="menu-btn" data-menu="pdf">📄 Download Laporan PDF</button>
   </div>
 </nav>
 
@@ -215,6 +218,40 @@ Jika dalam satu pekan terdapat banyak respons untuk kode yang sama, tetap dihitu
   <section class="panel">
     <div id="documentationGallery" class="documentation-gallery">
       <div class="detail-empty">Belum ada dokumentasi yang ditemukan.</div>
+    </div>
+  </section>
+</section>
+
+<section id="menu-pdf" class="menu-section">
+  <section class="panel">
+    <h2>📄 Download Laporan PDF</h2>
+    <p class="status">Gunakan menu ini untuk mengunduh masing-masing jenis laporan dalam format PDF.</p>
+    <div class="pdf-filter">
+      <select id="pdfMonth"><option value="">Semua bulan</option></select>
+      <select id="pdfCode"><option value="">Semua Kode Kelompok UPA</option></select>
+      <select id="pdfWeek"><option value="">Semua pekan</option><option value="1">Pekan 1 (1–7)</option><option value="2">Pekan 2 (8–14)</option><option value="3">Pekan 3 (15–21)</option><option value="4">Pekan 4 (22–akhir bulan)</option></select>
+    </div>
+    <div class="pdf-menu-grid">
+      <div class="pdf-menu-card">
+        <h3>📊 Rekap Monitoring UPA</h3>
+        <p>Rekap seluruh kode UPA berdasarkan bulan dan pembina, lengkap dengan status laporan per pekan.</p>
+        <button onclick="downloadMonitoringPDF()">📄 Download PDF Rekap Utama</button>
+      </div>
+      <div class="pdf-menu-card">
+        <h3>🔄 UPA Berjalan vs Tidak Berjalan</h3>
+        <p>Rekap khusus yang membedakan laporan UPA BERJALAN dan UPA TIDAK BERJALAN per pekan.</p>
+        <button onclick="downloadConditionPDF()">📄 Download PDF Berjalan / Tidak Berjalan</button>
+      </div>
+      <div class="pdf-menu-card">
+        <h3>📋 Laporan UPA Detail</h3>
+        <p>Menampilkan detail kegiatan, pembina, tanggal, materi, kondisi, dan kehadiran peserta.</p>
+        <button onclick="downloadPdfDetailMenu()">📄 Download PDF Detail</button>
+      </div>
+      <div class="pdf-menu-card">
+        <h3>📸 Dokumentasi UPA</h3>
+        <p>Dokumentasi kegiatan berdasarkan kode dan pekan, beserta informasi peserta.</p>
+        <button onclick="downloadDocumentationPDFMenu()">📄 Download PDF Dokumentasi</button>
+      </div>
     </div>
   </section>
 </section>
@@ -929,7 +966,7 @@ function renderDetail(){
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-top:12px">
-        <button class="print-btn" onclick="printReport('${esc(g.key)}')">🖨️ Cetak Laporan Ini</button>
+        <button class="pdf-btn" onclick="downloadDetailPDF('${esc(g.key)}')">📄 Download PDF Laporan Ini</button>
       </div>
     </article>`;
   }).join("");
@@ -968,6 +1005,295 @@ function printReport(key){
   const w=window.open("","_blank");
   if(w){w.document.write(html);w.document.close();}
 }
+
+
+// ===================== PDF EXPORT =====================
+function pdfLib(){
+  if(!window.jspdf || !window.jspdf.jsPDF){
+    alert("Library PDF belum termuat. Pastikan internet aktif lalu coba lagi.");
+    return null;
+  }
+  return window.jspdf.jsPDF;
+}
+
+function pdfTitle(doc, title, subtitle){
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(16);
+  doc.text("DIVISI MANAJEMEN TARBIYAH",14,16);
+  doc.setFontSize(11);
+  doc.text("BKAP DPD PKS KARIMUN",14,22);
+  doc.setDrawColor(18,59,122);
+  doc.line(14,26,doc.internal.pageSize.getWidth()-14,26);
+  doc.setFontSize(14);
+  doc.text(title,14,35);
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(9);
+  if(subtitle) doc.text(subtitle,14,41);
+}
+
+function pdfSafeFile(s){
+  return String(s||"laporan").replace(/[\\/:*?"<>|]+/g,"-").replace(/\s+/g,"_").slice(0,100);
+}
+
+function pdfFooter(doc){
+  const pages=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    const h=doc.internal.pageSize.getHeight(), w=doc.internal.pageSize.getWidth();
+    doc.setDrawColor(210,216,226); doc.line(14,h-12,w-14,h-12);
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(100,116,139);
+    doc.text("DIVISI MANAJEMEN TARBIYAH • BKAP DPD PKS KARIMUN",14,h-7);
+    doc.text(`Halaman ${i} / ${pages}`,w-14,h-7,{align:"right"});
+    doc.setTextColor(0,0,0);
+  }
+}
+
+function getPdfMonitoringData(){
+  const mk=document.getElementById("pdfMonth")?.value||"";
+  const codeFilter=normalizeCode(document.getElementById("pdfCode")?.value||"");
+  const weekFilter=Number(document.getElementById("pdfWeek")?.value||0);
+  const codeMaster=new Set(kodeRows.map(normalizeCode));
+  const reports=new Map();
+
+  responseRows.forEach(r=>{
+    const codeKey=normalizeCode(r[rc.code]);
+    if(!codeKey || !codeMaster.has(codeKey)) return;
+    if(codeFilter && codeKey!==codeFilter) return;
+    const d=getUPADate(r);
+    if(!d) return;
+    if(mk && monthKey(d)!==mk) return;
+    const w=weekNo(d);
+    if(!w) return;
+
+    if(!reports.has(codeKey)) reports.set(codeKey,{weeks:{1:[],2:[],3:[],4:[]},conditionWeeks:{
+      1:{berjalan:[],tidak:[]},2:{berjalan:[],tidak:[]},3:{berjalan:[],tidak:[]},4:{berjalan:[],tidak:[]}
+    }});
+    const z=reports.get(codeKey);
+    const st=getStatus(r);
+
+    // Satu kode + satu pekan = satu kali SUDAH LAPOR.
+    if(!z.weeks[w].length) z.weeks[w].push({date:d,pembina:pembinaByCode.get(codeKey)||getPembina(r),status:st});
+
+    const sn=norm(st);
+    const bucket=sn.includes("tidakberjalan")||sn.includes("tidakupa")?"tidak":sn.includes("berjalan")?"berjalan":"";
+    if(bucket && !z.conditionWeeks[w][bucket].length){
+      z.conditionWeeks[w][bucket].push({date:d,pembina:pembinaByCode.get(codeKey)||getPembina(r),status:st});
+    }
+  });
+
+  return kodeRows.filter(code=>{
+    const key=normalizeCode(code);
+    if(codeFilter && key!==codeFilter) return false;
+    return true;
+  }).map(code=>{
+    const key=normalizeCode(code), z=reports.get(key);
+    return {
+      code,
+      pb:pembinaByCode.get(key)||"-",
+      month:mk ? monthLabel(new Date(Number(mk.slice(0,4)),Number(mk.slice(5,7))-1,1)) : "Semua bulan",
+      weeks:[1,2,3,4].map(n=>Boolean(z?.weeks[n]?.length)),
+      details:z?.weeks||{1:[],2:[],3:[],4:[]},
+      conditionWeeks:z?.conditionWeeks||{1:{berjalan:[],tidak:[]},2:{berjalan:[],tidak:[]},3:{berjalan:[],tidak:[]},4:{berjalan:[],tidak:[]}}
+    };
+  });
+}
+
+function downloadMonitoringPDF(){
+  const JsPDF=pdfLib(); if(!JsPDF) return;
+  const doc=new JsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+  const mf=document.getElementById("pdfMonth");
+  const cf=document.getElementById("pdfCode");
+  const wf=document.getElementById("pdfWeek");
+  const rows=getPdfMonitoringData();
+  const monthText=mf?.options[mf.selectedIndex]?.text||"Semua bulan";
+  const codeText=cf?.options[cf.selectedIndex]?.text||"Semua Kode Kelompok UPA";
+  const weekText=wf?.value ? wf.options[wf.selectedIndex].text : "Semua pekan";
+  const subtitle=`Periode: ${monthText} | ${codeText} | ${weekText}`;
+  pdfTitle(doc,"REKAP MONITORING PELAKSANAAN UPA PER KODE",subtitle);
+
+  const body=rows.map(x=>[
+    x.code,x.pb,x.month,
+    ...x.weeks.map((v,i)=>{
+      if(!v) return "BELUM LAPOR";
+      const one=(x.details[i+1]||[])[0];
+      return "SUDAH LAPOR"+(one?.date?`\n${fmtDate(one.date)}`:"");
+    }),
+    `${Math.round(x.weeks.filter(Boolean).length/4*100)}%`
+  ]);
+  doc.autoTable({
+    startY:46,
+    head:[["KODE UPA","NAMA PEMBINA","BULAN","PEKAN 1","PEKAN 2","PEKAN 3","PEKAN 4","% LAPOR"]],
+    body,
+    styles:{fontSize:8,cellPadding:{top:3,bottom:3,left:2.5,right:2.5},halign:"center",valign:"middle",overflow:"linebreak"},
+    headStyles:{fillColor:[249,115,22],textColor:[17,24,39],fontStyle:"bold",fontSize:8.2,cellPadding:3},
+    columnStyles:{0:{cellWidth:24,fontStyle:"bold"},1:{cellWidth:43,halign:"left"},2:{cellWidth:28},3:{cellWidth:38},4:{cellWidth:38},5:{cellWidth:38},6:{cellWidth:38},7:{cellWidth:18,fontStyle:"bold"}},
+    didParseCell:function(data){
+      if(data.section==="body" && data.column.index>=3 && data.column.index<=6){
+        const t=String(data.cell.raw||"");
+        data.cell.styles.fontStyle="bold";
+        data.cell.styles.textColor=t.startsWith("SUDAH")?[15,159,75]:[239,71,111];
+      }
+    }
+  });
+  pdfFooter(doc);
+  const mk=document.getElementById("pdfMonth")?.value||"semua";
+  const code=document.getElementById("pdfCode")?.value||"semua-kode";
+  doc.save(`Monitoring_UPA_${pdfSafeFile(mk)}_${pdfSafeFile(code)}.pdf`);
+}
+
+function downloadConditionPDF(){
+  const JsPDF=pdfLib(); if(!JsPDF) return;
+  const doc=new JsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+  const mf=document.getElementById("pdfMonth"), cf=document.getElementById("pdfCode"), wf=document.getElementById("pdfWeek");
+  const rows=getPdfMonitoringData();
+  const monthText=mf?.options[mf.selectedIndex]?.text||"Semua bulan";
+  const codeText=cf?.options[cf.selectedIndex]?.text||"Semua Kode Kelompok UPA";
+  const weekText=wf?.value ? wf.options[wf.selectedIndex].text : "Semua pekan";
+  pdfTitle(doc,"REKAP LAPORAN UPA: BERJALAN VS TIDAK BERJALAN",`Periode: ${monthText} | ${codeText} | ${weekText}`);
+
+  const body=rows.map(x=>{
+    const cells=[1,2,3,4].map(w=>{
+      const cw=x.conditionWeeks[w]||{berjalan:[],tidak:[]};
+      const vals=[];
+      if(cw.berjalan?.length) vals.push("BERJALAN"+(cw.berjalan[0]?.date?`\n${fmtDate(cw.berjalan[0].date)}`:""));
+      if(cw.tidak?.length) vals.push("TIDAK BERJALAN"+(cw.tidak[0]?.date?`\n${fmtDate(cw.tidak[0].date)}`:""));
+      return vals.join("\n")||"—";
+    });
+    return [x.code,x.pb,x.month,...cells,
+      [1,2,3,4].filter(w=>x.conditionWeeks[w]?.berjalan?.length).length,
+      [1,2,3,4].filter(w=>x.conditionWeeks[w]?.tidak?.length).length];
+  });
+  doc.autoTable({
+    startY:46,
+    head:[["KODE UPA","NAMA PEMBINA","BULAN","PEKAN 1","PEKAN 2","PEKAN 3","PEKAN 4","TOTAL BERJALAN","TOTAL TIDAK BERJALAN"]],
+    body,
+    styles:{fontSize:7.5,cellPadding:{top:3,bottom:3,left:2,right:2},halign:"center",valign:"middle",overflow:"linebreak"},
+    headStyles:{fillColor:[249,115,22],textColor:[17,24,39],fontStyle:"bold",fontSize:7.4,cellPadding:3},
+    columnStyles:{0:{cellWidth:23,fontStyle:"bold"},1:{cellWidth:39,halign:"left"},2:{cellWidth:27},3:{cellWidth:31},4:{cellWidth:31},5:{cellWidth:31},6:{cellWidth:31},7:{cellWidth:24,fontStyle:"bold"},8:{cellWidth:29,fontStyle:"bold"}}
+  });
+  pdfFooter(doc);
+  doc.save(`Rekap_UPA_Berjalan_Tidak_Berjalan_${pdfSafeFile(document.getElementById("pdfMonth")?.value||"semua")}.pdf`);
+}
+
+function detailGroupsForCurrentFilter(){
+  const mk=document.getElementById("detailMonth").value;
+  const code=document.getElementById("detailCode").value;
+  const week=Number(document.getElementById("detailWeek").value||0);
+  return detailGroups.filter(g=>
+    (!mk || g.month===mk) &&
+    (!code || normalizeCode(g.code)===code) &&
+    (!week || g.week===week)
+  );
+}
+
+function addDetailPdf(doc,g){
+  let y=49;
+  doc.setFont("helvetica","bold");doc.setFontSize(13);
+  doc.text(`${g.code} — Pekan ${g.week}`,14,y);
+  y+=6;
+  doc.setFont("helvetica","normal");doc.setFontSize(9);
+  doc.text(`${fmtDate(g.date)} • ${g.material||"Materi belum diisi"}`,14,y); y+=6;
+
+  doc.autoTable({
+    startY:y,
+    theme:"grid",
+    body:[
+      ["Nama Pembina",g.pb||"-"],
+      ["Kondisi UPA",g.condition||"-"],
+      ["Alasan Tidak UPA",g.reason||"-"],
+      ["Jumlah Peserta",String(g.members.length)]
+    ],
+    styles:{fontSize:8,cellPadding:2},
+    columnStyles:{0:{fontStyle:"bold",cellWidth:38},1:{cellWidth:145}}
+  });
+  y=doc.lastAutoTable.finalY+7;
+  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.text("Kehadiran Peserta",14,y);
+  const attendance=g.members.map((m,i)=>[i+1,m.name,m.status]);
+  doc.autoTable({
+    startY:y+3,
+    head:[["No","Nama Binaan","Keterangan"]],
+    body:attendance.length?attendance:[["","","Tidak ada data peserta"]],
+    styles:{fontSize:7.5,cellPadding:2},
+    headStyles:{fillColor:[18,59,122],textColor:255},
+    columnStyles:{0:{cellWidth:12},1:{cellWidth:110},2:{cellWidth:61}}
+  });
+  y=doc.lastAutoTable.finalY+8;
+  doc.setFont("helvetica","normal");doc.setFontSize(8);
+  doc.text("Dokumentasi: "+(g.photo ? driveOpenUrl(g.photo) : "Tidak ada dokumentasi"),14,y,{maxWidth:175});
+}
+
+function downloadDetailPDF(key){
+  const JsPDF=pdfLib(); if(!JsPDF) return;
+  const g=detailGroups.find(x=>x.key===key);
+  if(!g){alert("Laporan tidak ditemukan.");return;}
+  const doc=new JsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  pdfTitle(doc,"LAPORAN UPA DETAIL",`${g.code} | ${fmtDate(g.date)} | Pekan ${g.week}`);
+  addDetailPdf(doc,g);
+  doc.save(`Laporan_UPA_${pdfSafeFile(g.code)}_Pekan_${g.week}.pdf`);
+}
+
+function downloadSelectedDetailPDF(){
+  const JsPDF=pdfLib(); if(!JsPDF) return;
+  const groups=detailGroupsForCurrentFilter();
+  const code=document.getElementById("detailCode").value;
+  if(!code){alert("Silakan pilih Kode Kelompok UPA terlebih dahulu.");return;}
+  if(!groups.length){alert("Tidak ada laporan yang sesuai filter.");return;}
+
+  const doc=new JsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  groups.forEach((g,i)=>{
+    if(i) doc.addPage();
+    pdfTitle(doc,"LAPORAN UPA DETAIL",`${g.code} | ${fmtDate(g.date)} | Pekan ${g.week}`);
+    addDetailPdf(doc,g);
+  });
+  doc.save(`Laporan_UPA_Detail_${pdfSafeFile(kodeRows.find(x=>normalizeCode(x)===code)||code)}.pdf`);
+}
+
+function documentationGroupsForCurrentFilter(){
+  const mk=document.getElementById("docMonth").value;
+  const code=document.getElementById("docCode").value;
+  const week=Number(document.getElementById("docWeek").value||0);
+  return detailGroups.filter(g=>
+    g.photo &&
+    (!mk || g.month===mk) &&
+    (!code || normalizeCode(g.code)===code) &&
+    (!week || g.week===week)
+  );
+}
+
+function downloadDocumentationPDF(){
+  const JsPDF=pdfLib(); if(!JsPDF) return;
+  const groups=documentationGroupsForCurrentFilter();
+  if(!groups.length){alert("Tidak ada dokumentasi yang sesuai filter.");return;}
+
+  const doc=new JsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  groups.forEach((g,i)=>{
+    if(i) doc.addPage();
+    pdfTitle(doc,"DOKUMENTASI UPA",`${g.code} | ${fmtDate(g.date)} | Pekan ${g.week}`);
+    let y=49;
+    doc.setFontSize(11);doc.setFont("helvetica","bold");
+    doc.text(g.code,14,y);y+=6;
+    doc.setFontSize(9);doc.setFont("helvetica","normal");
+    doc.text(`Pembina: ${g.pb||"-"}`,14,y);y+=5;
+    doc.text(`Materi: ${g.material||"-"}`,14,y);y+=5;
+    doc.text(`Kondisi: ${g.condition||"-"}`,14,y);y+=8;
+    doc.setFont("helvetica","bold");doc.text("Tautan Dokumentasi",14,y);y+=5;
+    doc.setFont("helvetica","normal");
+    doc.setTextColor(37,99,235);
+    doc.textWithLink(driveOpenUrl(g.photo),14,y,{url:driveOpenUrl(g.photo),maxWidth:180});
+    doc.setTextColor(0,0,0);
+    y+=12;
+    doc.autoTable({
+      startY:y,
+      head:[["No","Nama Binaan","Keterangan"]],
+      body:g.members.length?g.members.map((m,j)=>[j+1,m.name,m.status]):[["","","Tidak ada data peserta"]],
+      styles:{fontSize:7.5,cellPadding:2},
+      headStyles:{fillColor:[18,59,122],textColor:255}
+    });
+  });
+  const code=document.getElementById("docCode").value||"semua";
+  doc.save(`Dokumentasi_UPA_${pdfSafeFile(code)}.pdf`);
+}
+// =================== END PDF EXPORT ===================
 
 function resetDetail(){
   document.getElementById("detailMonth").value="";
@@ -1104,6 +1430,49 @@ function resetDocumentation(){
   }
 })();
 
+function populatePdfFilters(){
+  const mf=document.getElementById("pdfMonth");
+  const cf=document.getElementById("pdfCode");
+  if(!mf || !cf) return;
+  const oldM=mf.value, oldC=cf.value;
+  const months=new Map();
+  detailGroups.forEach(g=>months.set(g.month,monthLabel(g.date)));
+  mf.innerHTML='<option value="">Semua bulan</option>';
+  [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([v,t])=>mf.innerHTML+=`<option value="${esc(v)}">${esc(t)}</option>`);
+  if([...mf.options].some(o=>o.value===oldM)) mf.value=oldM;
+  cf.innerHTML='<option value="">Semua Kode Kelompok UPA</option>';
+  kodeRows.forEach(code=>{const key=normalizeCode(code);const pb=pembinaByCode.get(key)||"-";cf.innerHTML+=`<option value="${esc(key)}">${esc(code)} — ${esc(pb)}</option>`});
+  if([...cf.options].some(o=>o.value===oldC)) cf.value=oldC;
+}
+
+function applyPdfFiltersToSource(){
+  const mk=document.getElementById("pdfMonth")?.value||"";
+  const code=document.getElementById("pdfCode")?.value||"";
+  const week=Number(document.getElementById("pdfWeek")?.value||0);
+  return {mk,code,week};
+}
+
+function downloadPdfDetailMenu(){
+  const {mk,code,week}=applyPdfFiltersToSource();
+  if(!code){alert("Silakan pilih Kode Kelompok UPA terlebih dahulu untuk PDF Detail.");return;}
+  const groups=detailGroups.filter(g=>(!mk||g.month===mk)&&(!code||normalizeCode(g.code)===code)&&(!week||g.week===week));
+  if(!groups.length){alert("Tidak ada laporan detail yang sesuai filter.");return;}
+  const JsPDF=pdfLib(); if(!JsPDF) return;
+  const doc=new JsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  groups.forEach((g,i)=>{if(i) doc.addPage();pdfTitle(doc,"LAPORAN UPA DETAIL",`${g.code} | ${fmtDate(g.date)} | Pekan ${g.week}`);addDetailPdf(doc,g);});
+  doc.save(`Laporan_UPA_Detail_${pdfSafeFile(groups[0].code)}.pdf`);
+}
+
+function downloadDocumentationPDFMenu(){
+  const {mk,code,week}=applyPdfFiltersToSource();
+  const groups=detailGroups.filter(g=>g.photo&&(!mk||g.month===mk)&&(!code||normalizeCode(g.code)===code)&&(!week||g.week===week));
+  if(!groups.length){alert("Tidak ada dokumentasi yang sesuai filter.");return;}
+  const JsPDF=pdfLib(); if(!JsPDF) return;
+  const doc=new JsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  groups.forEach((g,i)=>{if(i) doc.addPage();pdfTitle(doc,"DOKUMENTASI UPA",`${g.code} | ${fmtDate(g.date)} | Pekan ${g.week}`);let y=49;doc.setFontSize(11);doc.setFont("helvetica","bold");doc.text(g.code,14,y);y+=6;doc.setFontSize(9);doc.setFont("helvetica","normal");doc.text(`Pembina: ${g.pb||"-"}`,14,y);y+=5;doc.text(`Materi: ${g.material||"-"}`,14,y);y+=5;doc.text(`Kondisi: ${g.condition||"-"}`,14,y);y+=8;doc.setFont("helvetica","bold");doc.text("Tautan Dokumentasi",14,y);y+=5;doc.setFont("helvetica","normal");doc.textWithLink(driveOpenUrl(g.photo),14,y,{url:driveOpenUrl(g.photo),maxWidth:180});y+=12;doc.autoTable({startY:y,head:[["No","Nama Binaan","Keterangan"]],body:g.members.length?g.members.map((m,j)=>[j+1,m.name,m.status]):[["","","Tidak ada data peserta"]],styles:{fontSize:7.5,cellPadding:2},headStyles:{fillColor:[18,59,122],textColor:255}});});
+  doc.save(`Dokumentasi_UPA_${pdfSafeFile(code||"semua")}.pdf`);
+}
+
 function initMenus(){
   document.querySelectorAll(".menu-btn").forEach(btn=>{
     btn.addEventListener("click",()=>{
@@ -1116,11 +1485,17 @@ function initMenus(){
         populateDocumentationFilters();
         renderDocumentation();
       }
+      if(btn.dataset.menu==="pdf"){
+        if(!detailGroups.length) buildDetailGroups();
+        populatePdfFilters();
+      }
     });
   });
   ["detailMonth","detailCode","detailWeek"].forEach(id=>document.getElementById(id).addEventListener("change",renderDetail));
   ["docMonth","docCode","docWeek"].forEach(id=>document.getElementById(id).addEventListener("change",renderDocumentation));
+  ["pdfMonth","pdfCode","pdfWeek"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{}));
 }
+
 
 function resetFilter(){document.getElementById("pembinaFilter").value="";document.getElementById("search").value="";let mf=document.getElementById("monthFilter");if(mf.options.length>1)mf.selectedIndex=1;apply()}
 ["monthFilter","pembinaFilter"].forEach(id=>document.getElementById(id).addEventListener("change",apply));
