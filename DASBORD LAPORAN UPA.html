@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monitoring Pelaksanaan UPA</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#64748b;--primary:#123b7a;--blue:#2563eb;--green:#16a34a;--red:#ef476f;--line:#e5e7eb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text)}
+.header{background:linear-gradient(135deg,#123b7a,#2563eb);color:#fff;padding:25px 20px}.header-inner{max-width:1500px;margin:auto}.header h1{margin:0;font-size:27px}.header p{margin:6px 0 0;opacity:.9}
+.container{max-width:1500px;margin:20px auto;padding:0 16px}
+.toolbar{display:grid;grid-template-columns:190px 190px 1fr auto auto;gap:10px;margin-bottom:13px}
+select,input,button{height:42px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:0 12px;font-size:14px}button{background:var(--primary);color:#fff;border:0;font-weight:700;cursor:pointer}button.secondary{background:#fff;color:var(--primary);border:1px solid #cbd5e1}
+.status{font-size:13px;color:var(--muted);margin:8px 0 16px}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:17px}.card{background:#fff;border:1px solid #edf0f5;border-radius:15px;padding:17px;box-shadow:0 7px 22px rgba(15,23,42,.06)}.label{font-size:13px;color:var(--muted)}.value{font-size:27px;font-weight:800;margin-top:7px}
+.panel{background:#fff;border:1px solid #edf0f5;border-radius:15px;padding:17px;box-shadow:0 7px 22px rgba(15,23,42,.06);margin-bottom:17px}.panel h2{font-size:17px;margin:0 0 13px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}.monitor-table{border-collapse:separate;border-spacing:0;width:100%;min-width:850px;font-size:14px}.monitor-table th,.monitor-table td{padding:11px 12px;border-right:1px solid #d7dbe2;border-bottom:1px solid #d7dbe2;text-align:center;white-space:nowrap}.monitor-table th{background:#f97316;color:#111827;font-weight:800;position:sticky;top:0;z-index:3}.monitor-table th:first-child,.monitor-table td:first-child{text-align:center;position:sticky;left:0;z-index:2;background:#fff}.monitor-table th:first-child{z-index:4;background:#f97316}.monitor-table td:nth-child(2){text-align:left}.monitor-table tbody tr:nth-child(even) td{background:#fff0e9}.monitor-table tbody tr:nth-child(even) td:first-child{background:#fff0e9}
+.code{font-weight:700}.pb{font-weight:600}.month{font-weight:600;color:#475569}
+.status-cell{font-size:15px;font-weight:800}.sudah{color:#0f9f4b}.belum{color:#ef476f}.dash{color:#94a3b8}
+.progress{height:10px;background:#e9eef5;border-radius:99px;overflow:hidden;margin-top:5px}.progress>span{display:block;height:100%;background:#2563eb;border-radius:99px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:#64748b;margin-top:11px}.legend b{font-size:16px}.green{color:#0f9f4b}.pink{color:#ef476f}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:17px}.chart{height:320px}
+.note{background:#f8fafc;border-left:4px solid #2563eb;padding:11px 13px;border-radius:8px;color:#475569;font-size:13px;margin-bottom:17px}
+.condition-badge{display:inline-block;padding:5px 8px;border-radius:7px;font-size:12px;font-weight:800;line-height:1.2;margin:2px}.condition-run{background:#dcfce7;color:#15803d}.condition-stop{background:#ffe4e6;color:#be123c}.condition-none{color:#94a3b8}.condition-total{font-weight:800;font-size:15px}.condition-note{font-size:12px;color:#64748b;margin-top:10px}.menu-bar{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(15,23,42,.05)}
+.menu-inner{max-width:1500px;margin:auto;padding:8px 16px;display:flex;gap:8px}
+.menu-btn{height:40px;background:#fff;color:#123b7a;border:1px solid #d7deea;border-radius:10px;padding:0 16px;font-weight:800}
+.menu-btn.active{background:#123b7a;color:#fff;border-color:#123b7a}
+.menu-section{display:none}.menu-section.active{display:block}
+.detail-toolbar{display:grid;grid-template-columns:1fr 1.3fr 1fr auto;gap:10px}
+.detail-empty{padding:28px;text-align:center;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px}
+.detail-head{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px}
+.detail-info{background:#f8fafc;border-radius:10px;padding:12px}.detail-info small{display:block;color:#64748b;margin-bottom:4px}.detail-info b{font-size:15px}
+.report-card{border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:18px;background:#fff}
+.report-title{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
+.report-title h3{margin:0;font-size:18px}.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}
+.badge-run{background:#dcfce7;color:#15803d}.badge-stop{background:#ffe4e6;color:#be123c}
+.report-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:18px}
+.photo-box{background:#f8fafc;border-radius:12px;padding:10px;min-height:180px;display:flex;align-items:center;justify-content:center}
+.photo-box img{max-width:100%;max-height:420px;border-radius:9px;object-fit:contain}
+.photo-box a{color:#2563eb;font-weight:700;text-decoration:none}
+.att-table{width:100%;border-collapse:collapse;font-size:13px}.att-table th,.att-table td{padding:8px 9px;border-bottom:1px solid #e5e7eb}.att-table th{background:#f1f5f9;text-align:left}.att-table td:last-child{text-align:center;font-weight:800}
+.hadir{color:#16a34a}.izin{color:#d97706}.sakit{color:#dc2626}.lain{color:#64748b}
+.print-btn{background:#0f766e}
+.documentation-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.doc-card{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 3px 12px rgba(15,23,42,.05)}
+.doc-photo{height:245px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.doc-photo img{width:100%;height:100%;object-fit:cover;transition:transform .2s}
+.doc-card:hover .doc-photo img{transform:scale(1.025)}
+.doc-info{padding:13px}.doc-code{font-size:16px;font-weight:900;color:#123b7a}.doc-meta{color:#64748b;font-size:12px;margin-top:4px;line-height:1.5}
+.doc-actions{display:flex;gap:8px;margin-top:10px}.doc-actions a{flex:1;text-align:center;padding:8px;border-radius:8px;text-decoration:none;background:#123b7a;color:#fff;font-weight:700;font-size:12px}
+.doc-actions a.secondary-link{background:#f1f5f9;color:#123b7a;border:1px solid #dbe3ee}
+@media(max-width:1000px){.documentation-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.documentation-gallery{grid-template-columns:1fr}}
+@media(max-width:850px){.detail-toolbar{grid-template-columns:1fr 1fr}.detail-head{grid-template-columns:1fr 1fr}.report-grid{grid-template-columns:1fr}}
+@media(max-width:550px){.menu-inner{overflow:auto}.menu-btn{white-space:nowrap}.detail-toolbar,.detail-head{grid-template-columns:1fr}}
+
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0b1f3a,#123b7a 55%,#1d4ed8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{width:min(420px,100%);background:#fff;border-radius:20px;padding:30px;box-shadow:0 25px 70px rgba(0,0,0,.28)}
+.login-brand{text-align:center;margin-bottom:24px}.login-brand .icon{font-size:42px;margin-bottom:8px}
+.login-brand h1{margin:0;color:#123b7a;font-size:24px}.login-brand p{margin:6px 0 0;color:#64748b;font-size:13px}
+.login-field{margin-bottom:15px}.login-field label{display:block;font-weight:800;color:#334155;margin-bottom:7px}
+.login-field input{width:100%;height:46px;border:1px solid #cbd5e1;border-radius:10px;padding:0 13px;font-size:15px;box-sizing:border-box;outline:none}
+.login-field input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.login-submit{width:100%;height:46px;border:0;border-radius:10px;background:#123b7a;color:#fff;font-weight:900;font-size:15px;cursor:pointer}
+.login-error{min-height:20px;color:#dc2626;text-align:center;font-size:13px;font-weight:700;margin:10px 0 0}
+.login-hint{text-align:center;color:#94a3b8;font-size:11px;margin-top:16px}
+body.login-locked{overflow:hidden}
+
+.footer{text-align:center;color:#94a3b8;font-size:12px;padding:20px}
+@media(max-width:1000px){.toolbar{grid-template-columns:1fr 1fr}.cards{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}}
+@media(max-width:650px){.toolbar,.cards{grid-template-columns:1fr 1fr}.header h1{font-size:22px}.container{padding:0 9px}}
+@media(max-width:430px){.toolbar,.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="icon">🔐</div>
+      <h1>Login Dashboard UPA</h1>
+      <p>Divisi Manajemen Tarbiyah • BKAP DPD PKS Karimun</p>
+    </div>
+    <form id="loginForm" autocomplete="off">
+      <div class="login-field">
+        <label for="loginUsername">Username</label>
+        <input id="loginUsername" type="text" placeholder="Masukkan username" autocomplete="username" required>
+      </div>
+      <div class="login-field">
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" placeholder="Masukkan password" autocomplete="current-password" required>
+      </div>
+      <button class="login-submit" type="submit">🔓 Masuk</button>
+      <div id="loginError" class="login-error"></div>
+      <div class="login-hint">Akses terbatas untuk pengguna yang memiliki akun.</div>
+    </form>
+  </div>
+</div>
+
+<header class="header"><div class="header-inner">
+<h1>Dashboard Evaluasi Pelaksanaan UPA</h1>
+<p>Monitoring per Kode UPA • master kode & pembina dari sheet <b>KODE KELOMPOK UPA</b></p>
+</div></header>
+
+<nav class="menu-bar">
+  <div class="menu-inner">
+    <button class="menu-btn active" data-menu="monitoring">📊 Monitoring UPA</button>
+    <button class="menu-btn" data-menu="detail">📋 Laporan UPA Detail</button>
+    <button class="menu-btn" data-menu="documentation">📸 Dokumentasi UPA</button>
+  </div>
+</nav>
+
+<main class="container">
+<section id="menu-monitoring" class="menu-section active">
+<div class="note">
+<b>Dasar laporan:</b> master <b>KODE KELOMPOK UPA + NAMA PEMBINA</b> diambil dari sheet <b>KODE KELOMPOK UPA</b>. Setiap kode kemudian dicocokkan dengan <b>KODE KELOMPOK UPA</b> pada <b>Form Responses 1</b>. Penentuan bulan dan pekan berdasarkan <b>TANGGAL UPA (kolom F)</b>. Jika ada satu atau lebih laporan untuk kode yang sama pada pekan tersebut, tetap dihitung <b>1 kali = SUDAH LAPOR</b>. KODE yang tidak memiliki laporan tetap ditampilkan sebagai <b>BELUM LAPOR</b>. Nilai tanggal dibaca langsung dari <b>TANGGAL UPA</b> (nilai mentah Google Sheets).
+</div>
+
+<div class="toolbar">
+<select id="monthFilter"><option value="">Pilih bulan</option></select>
+<select id="pembinaFilter"><option value="">Semua pembina</option></select>
+<input id="search" placeholder="Cari KODE UPA / nama pembina...">
+<button onclick="loadData()">↻ Muat Ulang</button>
+<button class="secondary" onclick="resetFilter()">Reset</button>
+</div>
+<div id="status" class="status">Menghubungkan ke Google Sheets...</div>
+
+<section class="cards">
+<div class="card"><div class="label">Total Kode UPA</div><div class="value" id="kKode">0</div></div>
+<div class="card"><div class="label">Sudah Lapor</div><div class="value" id="kSudah">0</div></div>
+<div class="card"><div class="label">Belum Lapor</div><div class="value" id="kBelum">0</div></div>
+<div class="card"><div class="label">Total Pekan Lapor</div><div class="value" id="kPekan">0</div></div>
+<div class="card"><div class="label">Persentase Laporan</div><div class="value" id="kPersen">0%</div></div>
+</section>
+
+<section class="panel">
+<h2>Monitoring Pelaksanaan UPA per Kode</h2>
+<div class="table-wrap"><table class="monitor-table" id="monitorTable"></table></div>
+<div class="legend"><span><b class="green">☑</b> SUDAH</span><span><b class="pink">✕</b> BELUM</span><span>Dasar: master kode + pembina dari sheet <b>KODE KELOMPOK UPA</b></span></div>
+</section>
+
+<section class="panel">
+<h2>Rekap Laporan UPA: Berjalan vs Tidak Berjalan</h2>
+<div class="table-wrap"><table class="monitor-table" id="conditionTable"></table></div>
+<div class="condition-note">
+Rekap ini memisahkan status <b>UPA BERJALAN</b> dan <b>UPA TIDAK BERJALAN</b> berdasarkan kolom <b>KONDISI UPA</b> pada Form Responses 1.
+Jika dalam satu pekan terdapat banyak respons untuk kode yang sama, tetap dihitung <b>1 laporan</b> untuk kondisi tersebut.
+</div>
+</section>
+
+<section class="panel">
+<h2>Detail Laporan per Kode UPA</h2>
+<div class="table-wrap"><table class="monitor-table" id="detailTable"></table></div>
+</section>
+
+<section class="grid">
+<div class="panel"><h2>Rekap Pelaksanaan per Pekan</h2><div class="chart"><canvas id="weeklyChart"></canvas></div></div>
+<div class="panel"><h2>Pelaksanaan per Pembina</h2><div class="chart"><canvas id="pbChart"></canvas></div></div>
+</section>
+
+<section class="panel">
+<h2>Rekap Pembina</h2>
+<div class="table-wrap"><table class="monitor-table" id="pembinaTable"></table></div>
+</section>
+</section>
+
+<section id="menu-detail" class="menu-section">
+  <section class="panel">
+    <h2>📋 Laporan UPA Detail</h2>
+    <div class="detail-toolbar">
+      <select id="detailMonth"><option value="">Semua bulan</option></select>
+      <select id="detailCode"><option value="">Pilih Kode Kelompok UPA</option></select>
+      <select id="detailWeek">
+        <option value="">Semua pekan</option>
+        <option value="1">Pekan 1 (1–7)</option>
+        <option value="2">Pekan 2 (8–14)</option>
+        <option value="3">Pekan 3 (15–21)</option>
+        <option value="4">Pekan 4 (22–akhir bulan)</option>
+      </select>
+      <button class="secondary" onclick="resetDetail()">Reset</button>
+    </div>
+    <div id="detailStatus" class="status">Pilih bulan, kode, dan pekan.</div>
+  </section>
+
+  <section class="panel" id="detailSummary">
+    <div class="detail-empty">Silakan pilih <b>Kode Kelompok UPA</b> dan <b>pekan</b> untuk melihat laporan.</div>
+  </section>
+
+  <section class="panel">
+    <h2>📸 Dokumentasi & Kehadiran Peserta</h2>
+    <div id="detailReports">
+      <div class="detail-empty">Belum ada laporan yang dipilih.</div>
+    </div>
+  </section>
+</section>
+
+<section id="menu-documentation" class="menu-section">
+  <section class="panel">
+    <h2>📸 Dokumentasi UPA</h2>
+    <div class="detail-toolbar">
+      <select id="docMonth"><option value="">Semua bulan</option></select>
+      <select id="docCode"><option value="">Semua Kode Kelompok UPA</option></select>
+      <select id="docWeek">
+        <option value="">Semua pekan</option>
+        <option value="1">Pekan 1 (1–7)</option>
+        <option value="2">Pekan 2 (8–14)</option>
+        <option value="3">Pekan 3 (15–21)</option>
+        <option value="4">Pekan 4 (22–akhir bulan)</option>
+      </select>
+      <button class="secondary" onclick="resetDocumentation()">Reset</button>
+    </div>
+    <div id="docStatus" class="status">Menampilkan dokumentasi UPA.</div>
+  </section>
+
+  <section class="panel">
+    <div id="documentationGallery" class="documentation-gallery">
+      <div class="detail-empty">Belum ada dokumentasi yang ditemukan.</div>
+    </div>
+  </section>
+</section>
+</main>
+<div class="footer">Dashboard Evaluasi Pelaksanaan UPA • Divisi Manajemen Tarbiyah BKAP DPD PKS Karimun</div>
+
+<script>
+const CONFIG={
+ spreadsheetId:"1-Ggb2NKALh83doqMYikFQOQaH05nGQTcqOX6N2CNMYI",
+ responsesSheet:"Form Responses 1",
+ kodeSheet:"KODE KELOMPOK UPA"
+};
+let kodeRows=[],pembinaByCode=new Map(),responseRows=[],items=[],filtered=[];
+let rc={},charts={},detailGroups=[];
+let currentDetailKey="";
+
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function setStatus(t){document.getElementById("status").textContent=t}
+function norm(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"")}
+function findCol(h,words){for(let i=0;i<h.length;i++){let x=norm(h[i]);if(words.some(w=>x.includes(norm(w))))return i}return -1}
+
+function jsonp(sheet,cb,id){
+ const old=document.getElementById(id);if(old)old.remove();
+ window[cb]=window[cb]||function(){};
+ const s=document.createElement("script");s.id=id;s.async=true;
+ let query="";
+ // Sheet KODE diketahui: kolom A berisi daftar KODE, sehingga query A saja.
+ if(sheet===CONFIG.kodeSheet) query="&tq="+encodeURIComponent("select A,B,C");
+ s.src=`https://docs.google.com/spreadsheets/d/${CONFIG.spreadsheetId}/gviz/tq?sheet=${encodeURIComponent(sheet)}${query}&tqx=responseHandler:${cb}`;
+ s.onerror=()=>setStatus("Gagal membaca sheet "+sheet+". Pastikan spreadsheet dibagikan sebagai Viewer.");
+ document.head.appendChild(s);
+}
+function loadData(){
+ setStatus("Mengambil daftar KODE dari sheet KODE...");
+ window.handleKode=json=>{
+   try{
+     parseKode(json);
+     setStatus("Mengambil data laporan dari Form Responses 1...");
+     jsonp(CONFIG.responsesSheet,"handleResp","jsonpResp");
+   }catch(e){
+     console.error(e);
+     setStatus("Gagal membaca KODE: "+e.message);
+   }
+ };
+ window.handleResp=json=>{
+   try{
+     parseResponses(json);
+     buildDashboard();
+     buildDetailGroups();
+     populateDocumentationFilters();
+     renderDocumentation();
+   }catch(e){
+     console.error(e);
+     setStatus("Gagal membaca Form Responses 1: "+e.message);
+   }
+ };
+ jsonp(CONFIG.kodeSheet,"handleKode","jsonpKode");
+}
+
+function parseKode(json){
+ // Master sheet:
+ // A = NO
+ // B = KODE KELOMPOK UPA
+ // C = NAMA PEMBINA
+ const rows=(json.table && json.table.rows)||[];
+ kodeRows=[];
+ pembinaByCode.clear();
+
+ rows.forEach(r=>{
+   const cells=r.c||[];
+   const codeCell=cells[1];
+   const pbCell=cells[2];
+   const code=codeCell ? String(codeCell.v ?? codeCell.f ?? "").trim() : "";
+   const pb=pbCell ? String(pbCell.v ?? pbCell.f ?? "").trim() : "";
+   if(!code || norm(code)==="kodekelompokupa") return;
+
+   const key=normalizeCode(code);
+   if(!pembinaByCode.has(key)){
+     kodeRows.push(code);
+     pembinaByCode.set(key,pb);
+   }
+ });
+
+ if(!kodeRows.length) throw Error("Tidak ada KODE KELOMPOK UPA pada sheet KODE KELOMPOK UPA.");
+}
+
+const MONTHS_ID=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+function fmtDate(d){
+ return d ? d.toLocaleDateString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric"}) : "-";
+}
+
+function parseDate(v){
+ let s=String(v??"").trim();
+ if(!s) return null;
+
+ // 1) Format Indonesia: DD/MM/YYYY atau DD/MM/YYYY HH:mm:ss.
+ let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+ if(m){
+   const day=Number(m[1]), month=Number(m[2])-1, year=Number(m[3]);
+   const d=new Date(year,month,day,Number(m[4]||0),Number(m[5]||0),Number(m[6]||0));
+   if(d.getFullYear()===year && d.getMonth()===month && d.getDate()===day){
+     return new Date(year,month,day);
+   }
+ }
+
+ // 2) Google Visualization API kadang mengirim nilai tanggal
+ //    sebagai Date(2026,7,2) -> 2 Agustus 2026.
+ m=s.match(/^Date\(\s*(\d{4})\s*,\s*(\d{1,2})\s*,\s*(\d{1,2})(?:\s*,.*)?\)$/i);
+ if(m){
+   const year=Number(m[1]), month=Number(m[2]), day=Number(m[3]);
+   const d=new Date(year,month,day);
+   if(d.getFullYear()===year && d.getMonth()===month && d.getDate()===day) return d;
+ }
+
+ // 3) Format ISO: YYYY-MM-DD atau YYYY-MM-DDTHH:mm:ss.
+ m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:T|\s|$)/);
+ if(m){
+   const year=Number(m[1]), month=Number(m[2])-1, day=Number(m[3]);
+   const d=new Date(year,month,day);
+   if(d.getFullYear()===year && d.getMonth()===month && d.getDate()===day) return d;
+ }
+
+ // 4) Angka serial tanggal Google Sheets.
+ if(/^\d+(?:\.\d+)?$/.test(s)){
+   const n=Number(s);
+   if(n>20000 && n<100000){
+     const d=new Date(Date.UTC(1899,11,30)+n*86400000);
+     return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());
+   }
+ }
+
+ // 5) Fallback browser.
+ const d=new Date(s);
+ if(!isNaN(d)) return new Date(d.getFullYear(),d.getMonth(),d.getDate());
+
+ return null;
+}
+
+function monthLabel(d){
+ return d ? MONTHS_ID[d.getMonth()]+" "+d.getFullYear() : "Tanpa bulan";
+}
+
+function monthKey(d){
+ return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}` : "";
+}
+
+function weekNo(d){
+ if(!d) return 0;
+ // Sesuai format monitoring: Pekan 1 = tgl 1-7,
+ // Pekan 2 = 8-14, Pekan 3 = 15-21, Pekan 4 = 22-akhir bulan.
+ return Math.min(4,Math.ceil(d.getDate()/7));
+}
+
+function parseResponses(json){
+ const h=json.table.cols.map(c=>(c.label||"").trim());
+
+ // Tentukan kolom berdasarkan header SEBELUM membaca nilai baris.
+ rc.code=h.findIndex(x=>norm(x)==="kodekelompokupa");
+ rc.date=h.findIndex(x=>norm(x)==="tanggalupa");
+ rc.pb=h.findIndex(x=>norm(x)==="namapembina");
+ rc.status=h.findIndex(x=>norm(x)==="kondisiupa");
+
+ if(rc.pb<0) throw Error("Kolom NAMA PEMBINA tidak ditemukan.");
+ if(rc.code<0) throw Error("Kolom KODE KELOMPOK UPA tidak ditemukan.");
+ if(rc.date<0) throw Error("Kolom TANGGAL UPA tidak ditemukan.");
+
+ const rows=(json.table.rows||[]).map(r=>h.map((_,i)=>{
+   const c=r.c[i];
+   if(!c) return "";
+
+   // Untuk KODE/NAMA/STATUS gunakan nilai v.
+   // Untuk TANGGAL UPA simpan nilai mentah dan format tampilan sekaligus.
+   // Ini penting karena sebagian baris dapat berupa tanggal asli Sheets,
+   // sementara sebagian lain berupa teks 02/08/2026.
+   if(i===rc.date){
+     const raw=c.v ?? "";
+     const shown=c.f ?? "";
+     if(typeof raw==="string" && /^Date\(/i.test(raw)) return raw;
+     if(typeof raw==="string" && /^\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{4}/.test(raw)) return raw;
+     if(typeof shown==="string" && /^\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{4}/.test(shown)) return shown;
+     return raw!=="" ? raw : shown;
+   }
+   return c.v ?? c.f ?? "";
+ })).filter(r=>r.some(v=>String(v).trim()!==""));
+
+ responseRows=rows;
+ responseHeaders=h;
+}
+
+function normalizeCode(v){
+ return String(v??"")
+   .replace(/[\u200B-\u200D\uFEFF]/g,"")
+   .trim()
+   .toUpperCase()
+   .replace(/[^A-Z0-9]/g,"");
+}
+
+function findCodeInRow(row){
+ // The safest method: compare every cell in the response row
+ // against the master list from sheet KODE.
+ const master=new Set(kodeRows.map(normalizeCode));
+ for(let i=0;i<row.length;i++){
+   const v=normalizeCode(row[i]);
+   if(v && master.has(v)) return String(row[i]).trim();
+ }
+ return "";
+}
+
+function getPembina(row){
+ if(rc.pb>=0 && row[rc.pb]!=null && String(row[rc.pb]).trim()) return String(row[rc.pb]).trim();
+ // fallback: column B exactly as shown in the user's Form Responses screenshot
+ if(row[1]!=null) return String(row[1]).trim();
+ return "-";
+}
+
+function getStatus(row){
+ if(rc.status>=0 && row[rc.status]!=null && String(row[rc.status]).trim()) return String(row[rc.status]).trim();
+ return "";
+}
+
+function getUPADate(row){
+ // WAJIB menggunakan kolom TANGGAL UPA (kolom F pada Form Responses 1),
+ // bukan Timestamp. Timestamp hanya waktu pengisian form.
+ if(rc.date<0) return null;
+ return parseDate(row[rc.date]);
+}
+
+function buildDashboard(){
+ const monthSet=new Map(),pbSet=new Set();
+ // Nama pembina untuk filter berasal dari master KODE KELOMPOK UPA.
+ pembinaByCode.forEach(name=>{
+   const v=String(name||"").trim();
+   if(v && v!=="-") pbSet.add(v);
+ });
+ responseRows.forEach(r=>{
+   const d=getUPADate(r);
+   if(d) monthSet.set(monthKey(d),monthLabel(d));
+ });
+
+ const mf=document.getElementById("monthFilter");
+ mf.innerHTML='<option value="">Semua bulan</option>';
+ [...monthSet.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([v,t])=>{
+   const o=document.createElement("option");o.value=v;o.textContent=t;mf.appendChild(o)
+ });
+
+ const pf=document.getElementById("pembinaFilter");
+ // Selalu mulai dari SEMUA PEMBINA agar seluruh master KODE tampil.
+ pf.innerHTML='<option value="">Semua pembina</option>';
+ pf.value="";
+ [...pbSet].sort((a,b)=>a.localeCompare(b,"id")).forEach(v=>{
+   const o=document.createElement("option");o.value=v;o.textContent=v;pf.appendChild(o)
+ });
+
+ // Default ke bulan terbaru yang memiliki laporan.
+ const keys=[...monthSet.keys()].sort();
+ if(keys.length) mf.value=keys[keys.length-1];
+
+ apply();
+ const laporanCocok=responseRows.filter(r=>{
+   const ck=normalizeCode(r[rc.code]);
+   const d=getUPADate(r);
+   return codeMasterHas(ck) && d && (!mf.value || monthKey(d)===mf.value);
+ }).length;
+ setStatus(`Selesai. ${kodeRows.length.toLocaleString("id-ID")} KODE + NAMA PEMBINA dari sheet KODE KELOMPOK UPA, ${responseRows.length.toLocaleString("id-ID")} respons terbaca, ${laporanCocok.toLocaleString("id-ID")} respons cocok dengan bulan yang dipilih.`);
+
+}
+
+function codeMasterHas(key){ return new Set(kodeRows.map(normalizeCode)).has(key); }
+
+function apply(){
+ const mk=document.getElementById("monthFilter").value;
+ const pbFilter=document.getElementById("pembinaFilter").value;
+ const q=document.getElementById("search").value.toLowerCase().trim();
+
+ /*
+  MASTER:
+  - Semua baris laporan hanya boleh masuk jika KODE KELOMPOK UPA
+    terdapat di sheet KODE.
+  - Nama pembina diambil dari baris laporan yang cocok dengan KODE tersebut.
+  - Bulan/pekan 100% berdasarkan TANGGAL UPA.
+  - Ada minimal 1 laporan = SUDAH LAPOR, tanpa melihat KONDISI UPA.
+ */
+ const reports=new Map();
+ const codeMaster=new Set(kodeRows.map(normalizeCode));
+
+ responseRows.forEach(r=>{
+   const codeRaw=String(r[rc.code]??"").trim();
+   const codeKey=normalizeCode(codeRaw);
+
+   // KODE dari Form Responses harus ada di master sheet KODE.
+   if(!codeKey || !codeMaster.has(codeKey)) return;
+
+   // Pekan WAJIB berdasarkan TANGGAL UPA, bukan Timestamp.
+   const d=getUPADate(r);
+   if(!d) return;
+
+   const rMonth=monthKey(d);
+   if(mk && rMonth!==mk) return;
+
+   const p=pembinaByCode.get(codeKey) || getPembina(r);
+   if(pbFilter && p!==pbFilter) return;
+
+   const w=weekNo(d);
+   if(!w) return;
+
+   if(!reports.has(codeKey)){
+     reports.set(codeKey,{
+       pembina:new Set(),
+       weeks:{1:[],2:[],3:[],4:[]},
+       conditionWeeks:{
+         1:{berjalan:[],tidak:[]},
+         2:{berjalan:[],tidak:[]},
+         3:{berjalan:[],tidak:[]},
+         4:{berjalan:[],tidak:[]}
+       },
+       allConditions:new Set()
+     });
+   }
+
+   const z=reports.get(codeKey);
+   if(p && p!=="-") z.pembina.add(pembinaByCode.get(codeKey) || p);
+
+   const st=getStatus(r);
+   if(st) z.allConditions.add(st);
+
+   // Simpan bukti pertama untuk status umum "SUDAH LAPOR".
+   if(z.weeks[w].length===0){
+     z.weeks[w].push({
+       date:d,
+       pembina:p,
+       status:st
+     });
+   }
+
+   // Rekap khusus KONDISI UPA.
+   // Banyak baris dari anggota yang sama pada kode/tanggal/pekan
+   // tetap dihitung satu kali untuk masing-masing kondisi.
+   const stNorm=norm(st);
+   let bucket="";
+   if(stNorm.includes("tidakberjalan") || stNorm.includes("tidakupa")){
+     bucket="tidak";
+   }else if(stNorm.includes("berjalan")){
+     bucket="berjalan";
+   }
+   if(bucket && z.conditionWeeks[w][bucket].length===0){
+     z.conditionWeeks[w][bucket].push({
+       date:d,
+       pembina:p,
+       status:st
+     });
+   }
+ });
+
+ // KODE master menjadi dasar daftar dashboard.
+ // Jadi KODE yang belum pernah lapor tetap muncul sebagai BELUM LAPOR.
+ filtered=kodeRows.filter(code=>{
+   const key=normalizeCode(code);
+   const z=reports.get(key);
+
+   // FILTER NAMA PEMBINA WAJIB menggunakan MASTER
+   // Sheet KODE KELOMPOK UPA, bukan data laporan.
+   // Ini memastikan saat memilih JENITASARI hanya kode
+   // yang memang milik JENITASARI yang tampil, termasuk
+   // kode yang belum pernah membuat laporan.
+   const masterPb=String(pembinaByCode.get(key)||"").trim();
+   const responsePb=z ? [...z.pembina].join(" ") : "";
+   const displayPb=masterPb || responsePb;
+
+   const matchPb=!pbFilter || masterPb===pbFilter;
+   const matchSearch=!q || `${code} ${displayPb}`.toLowerCase().includes(q);
+
+   return matchPb && matchSearch;
+ }).map(code=>{
+   const z=reports.get(normalizeCode(code));
+   const weeks=[1,2,3,4].map(n=>Boolean(z && z.weeks[n] && z.weeks[n].length));
+   return {
+     code,
+     pb:pembinaByCode.get(normalizeCode(code)) || (z ? [...z.pembina].join(", ") : "-"),
+     month:mk ? MONTHS_ID[+mk.slice(5,7)-1]+" "+mk.slice(0,4) : "Semua bulan",
+     weeks,
+     conditions:z ? [...z.allConditions] : [],
+     details:z ? z.weeks : {1:[],2:[],3:[],4:[]},
+     conditionWeeks:z ? z.conditionWeeks : {
+       1:{berjalan:[],tidak:[]},
+       2:{berjalan:[],tidak:[]},
+       3:{berjalan:[],tidak:[]},
+       4:{berjalan:[],tidak:[]}
+     }
+   };
+ });
+
+ render();
+}
+
+function render(){
+ let total=filtered.length,sudah=0,belum=0;
+ filtered.forEach(x=>x.weeks.forEach(v=>v?sudah++:belum++));
+ document.getElementById("kKode").textContent=total.toLocaleString("id-ID");
+ document.getElementById("kSudah").textContent=sudah.toLocaleString("id-ID");
+ document.getElementById("kBelum").textContent=belum.toLocaleString("id-ID");
+ document.getElementById("kPekan").textContent=sudah.toLocaleString("id-ID");
+ document.getElementById("kPersen").textContent=(sudah+belum?Math.round(sudah/(sudah+belum)*100):0)+"%";
+
+ let h=`<thead><tr><th>KODE UPA</th><th>NAMA PEMBINA</th><th>BULAN</th><th>PEKAN 1</th><th>PEKAN 2</th><th>PEKAN 3</th><th>PEKAN 4</th><th>% LAPOR</th></tr></thead><tbody>`;
+ filtered.forEach(x=>{
+  const n=x.weeks.filter(Boolean).length,pc=Math.round(n/4*100);
+  h+=`<tr><td class="code">${esc(x.code)}</td><td class="pb">${esc(x.pb)}</td><td class="month">${esc(x.month||"-")}</td>`;
+  x.weeks.forEach((v,i)=>{
+    const info=x.details[i+1]||[];
+    let tip="";
+    if(v){
+      const one=info[0];
+      const detail=one ? `${fmtDate(one.date)}${one.status?" • "+one.status:""}` : "";
+      tip=`<div style="font-size:11px;font-weight:500;margin-top:3px">${detail}</div>`;
+    }
+    h+=`<td class="status-cell ${v?"sudah":"belum"}">${v?"☑ SUDAH LAPOR":"✕ BELUM LAPOR"}${tip}</td>`;
+  });
+  h+=`<td><b>${pc}%</b><div class="progress"><span style="width:${pc}%"></span></div></td></tr>`;
+ });
+ document.getElementById("monitorTable").innerHTML=h+"</tbody>";
+ renderConditionTable();
+ renderDetailTable();
+
+ const weekCounts=[1,2,3,4].map(n=>filtered.filter(x=>x.weeks[n-1]).length);
+ const pbMap={};filtered.forEach(x=>{
+   if(x.pb!=="-"){
+     x.pb.split(", ").forEach(p=>pbMap[p]=(pbMap[p]||0)+x.weeks.filter(Boolean).length);
+   }
+ });
+ if(charts.w)charts.w.destroy();if(charts.p)charts.p.destroy();
+ charts.w=new Chart(document.getElementById("weeklyChart"),{type:"bar",data:{labels:["Pekan 1","Pekan 2","Pekan 3","Pekan 4"],datasets:[{label:"Kode terlaksana",data:weekCounts,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{precision:0}}},plugins:{legend:{display:false}}}});
+ const pe=Object.entries(pbMap).sort((a,b)=>b[1]-a[1]);
+ charts.p=new Chart(document.getElementById("pbChart"),{type:"bar",data:{labels:pe.map(x=>x[0]),datasets:[{label:"Pelaksanaan",data:pe.map(x=>x[1]),borderWidth:1}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,scales:{x:{beginAtZero:true,ticks:{precision:0}}},plugins:{legend:{display:false}}}});
+ renderPbTable(pbMap);
+}
+function renderConditionTable(){
+ let h=`<thead><tr>
+   <th>KODE UPA</th>
+   <th>NAMA PEMBINA</th>
+   <th>BULAN</th>
+   <th>PEKAN 1</th>
+   <th>PEKAN 2</th>
+   <th>PEKAN 3</th>
+   <th>PEKAN 4</th>
+   <th>TOTAL BERJALAN</th>
+   <th>TOTAL TIDAK BERJALAN</th>
+ </tr></thead><tbody>`;
+
+ filtered.forEach(x=>{
+   let totalRun=0,totalStop=0;
+   const cells=[1,2,3,4].map(w=>{
+     const cw=x.conditionWeeks[w]||{berjalan:[],tidak:[]};
+     const run=cw.berjalan&&cw.berjalan.length>0;
+     const stop=cw.tidak&&cw.tidak.length>0;
+     if(run) totalRun++;
+     if(stop) totalStop++;
+
+     let cell="";
+     if(run){
+       const z=cw.berjalan[0];
+       cell+=`<span class="condition-badge condition-run">☑ BERJALAN${z&&z.date?`<br><small>${esc(fmtDate(z.date))}</small>`:""}</span>`;
+     }
+     if(stop){
+       const z=cw.tidak[0];
+       cell+=`<span class="condition-badge condition-stop">☑ TIDAK BERJALAN${z&&z.date?`<br><small>${esc(fmtDate(z.date))}</small>`:""}</span>`;
+     }
+     if(!cell) cell=`<span class="condition-none">—</span>`;
+     return `<td>${cell}</td>`;
+   }).join("");
+
+   h+=`<tr>
+     <td class="code">${esc(x.code)}</td>
+     <td class="pb">${esc(x.pb)}</td>
+     <td class="month">${esc(x.month||"-")}</td>
+     ${cells}
+     <td class="condition-total">${totalRun}</td>
+     <td class="condition-total">${totalStop}</td>
+   </tr>`;
+ });
+
+ if(!filtered.length){
+   h+=`<tr><td colspan="9">Tidak ada data pada filter yang dipilih.</td></tr>`;
+ }
+ document.getElementById("conditionTable").innerHTML=h+"</tbody>";
+}
+
+function renderDetailTable(){
+ let rows=[];
+ filtered.forEach(x=>{
+   [1,2,3,4].forEach(w=>{
+     (x.details[w]||[]).forEach(z=>{
+       rows.push({
+         code:x.code,
+         pb:z.pembina||"-",
+         date:z.date,
+         week:w,
+         status:z.status||"-"
+       });
+     });
+   });
+ });
+ rows.sort((a,b)=>{
+   const c=a.code.localeCompare(b.code,"id");
+   if(c) return c;
+   return (a.date-b.date);
+ });
+
+ let h=`<thead><tr><th>KODE UPA</th><th>NAMA PEMBINA</th><th>TANGGAL UPA</th><th>PEKAN</th><th>KONDISI UPA</th></tr></thead><tbody>`;
+ if(!rows.length){
+   h+=`<tr><td colspan="5">Belum ada laporan pada filter yang dipilih.</td></tr>`;
+ }else{
+   rows.forEach(z=>{
+     h+=`<tr>
+       <td class="code">${esc(z.code)}</td>
+       <td class="pb">${esc(z.pb)}</td>
+       <td>${esc(fmtDate(z.date))}</td>
+       <td><b>Pekan ${z.week}</b></td>
+       <td>${esc(z.status)}</td>
+     </tr>`;
+   });
+ }
+ document.getElementById("detailTable").innerHTML=h+"</tbody>";
+}
+
+function renderPbTable(pbMap){
+ let rows=Object.entries(pbMap).sort((a,b)=>b[1]-a[1]),h="<thead><tr><th>PEMBINA</th><th>PELAKSANAAN</th><th>RATA-RATA / 4 PEKAN</th></tr></thead><tbody>";
+ rows.forEach(([p,n])=>h+=`<tr><td class="pb">${esc(p)}</td><td>${n}</td><td>${Math.round(n/Math.max(1,filtered.length)*100)}%</td></tr>`);
+ document.getElementById("pembinaTable").innerHTML=h+"</tbody>";
+}
+
+function driveImageUrl(v){
+  const s=String(v||"").trim();
+  if(!s) return "";
+  let m=s.match(/\/d\/([A-Za-z0-9_-]+)/);
+  if(!m) m=s.match(/[?&]id=([A-Za-z0-9_-]+)/);
+  if(!m) m=s.match(/[-\w]{20,}/);
+  return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w1200` : s;
+}
+
+function driveOpenUrl(v){
+  const s=String(v||"").trim();
+  let m=s.match(/\/d\/([A-Za-z0-9_-]+)/);
+  if(m) return `https://drive.google.com/file/d/${m[1]}/view`;
+  m=s.match(/[?&]id=([A-Za-z0-9_-]+)/);
+  if(m) return `https://drive.google.com/file/d/${m[1]}/view`;
+  return s;
+}
+
+function getHeaderIndex(headers, variants){
+  const hs=headers.map(norm);
+  for(const v of variants){
+    const n=norm(v);
+    const i=hs.findIndex(x=>x===n || x.includes(n));
+    if(i>=0) return i;
+  }
+  return -1;
+}
+
+function buildDetailGroups(){
+  const idx={
+    code:getHeaderIndex(responseHeaders,["KODE KELOMPOK UPA"]),
+    pb:getHeaderIndex(responseHeaders,["NAMA PEMBINA"]),
+    member:getHeaderIndex(responseHeaders,["NAMA BINAAN"]),
+    ket:getHeaderIndex(responseHeaders,["KETERANGAN"]),
+    date:getHeaderIndex(responseHeaders,["TANGGAL UPA"]),
+    material:getHeaderIndex(responseHeaders,["MATERI / KKP","MATERI/KKP"]),
+    condition:getHeaderIndex(responseHeaders,["KONDISI UPA"]),
+    reason:getHeaderIndex(responseHeaders,["ALASAN TIDAK UPA"]),
+    photo:getHeaderIndex(responseHeaders,["DOKUMENTASI"])
+  };
+
+  const groups=new Map();
+
+  responseRows.forEach(r=>{
+    const code=String(r[idx.code]??"").trim();
+    const key=normalizeCode(code);
+    if(!key || !codeMasterHas(key)) return;
+
+    const d=parseDate(r[idx.date]);
+    if(!d) return;
+
+    // Satu kegiatan = satu KODE + satu TANGGAL UPA.
+    const groupKey=`${key}|${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    if(!groups.has(groupKey)){
+      groups.set(groupKey,{
+        key:groupKey, code:kodeRows.find(x=>normalizeCode(x)===key)||code,
+        pb:pembinaByCode.get(key)||String(r[idx.pb]??"").trim()||"-",
+        date:d, week:weekNo(d), month:monthKey(d),
+        material:String(r[idx.material]??"").trim(),
+        condition:String(r[idx.condition]??"").trim(),
+        reason:String(r[idx.reason]??"").trim(),
+        photo:String(r[idx.photo]??"").trim(),
+        members:[]
+      });
+    }
+
+    const g=groups.get(groupKey);
+    const member=String(r[idx.member]??"").trim();
+    const ket=String(r[idx.ket]??"").trim();
+    if(member || ket){
+      // Hindari duplikasi peserta yang sama pada laporan yang sama.
+      const dup=g.members.some(x=>x.name===member && x.status===ket);
+      if(!dup) g.members.push({name:member||"-",status:ket||"-"});
+    }
+    if(!g.material) g.material=String(r[idx.material]??"").trim();
+    if(!g.condition) g.condition=String(r[idx.condition]??"").trim();
+    if(!g.reason) g.reason=String(r[idx.reason]??"").trim();
+    if(!g.photo) g.photo=String(r[idx.photo]??"").trim();
+  });
+
+  detailGroups=[...groups.values()].sort((a,b)=>{
+    const c=a.code.localeCompare(b.code,"id");
+    return c || a.date-b.date;
+  });
+
+  populateDetailFilters();
+  renderDetail();
+}
+
+function populateDetailFilters(){
+  const mf=document.getElementById("detailMonth");
+  const cf=document.getElementById("detailCode");
+  const oldM=mf.value, oldC=cf.value;
+
+  const months=new Map();
+  detailGroups.forEach(g=>months.set(g.month,monthLabel(g.date)));
+  mf.innerHTML='<option value="">Semua bulan</option>';
+  [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([v,t])=>{
+    mf.innerHTML+=`<option value="${esc(v)}">${esc(t)}</option>`;
+  });
+  if([...mf.options].some(o=>o.value===oldM)) mf.value=oldM;
+
+  cf.innerHTML='<option value="">Pilih Kode Kelompok UPA</option>';
+  kodeRows.forEach(code=>{
+    const key=normalizeCode(code);
+    const pb=pembinaByCode.get(key)||"-";
+    cf.innerHTML+=`<option value="${esc(key)}">${esc(code)} — ${esc(pb)}</option>`;
+  });
+  if([...cf.options].some(o=>o.value===oldC)) cf.value=oldC;
+}
+
+function renderDetail(){
+  const mk=document.getElementById("detailMonth").value;
+  const code=document.getElementById("detailCode").value;
+  const week=Number(document.getElementById("detailWeek").value||0);
+
+  let groups=detailGroups.filter(g=>
+    (!mk || g.month===mk) &&
+    (!code || normalizeCode(g.code)===code) &&
+    (!week || g.week===week)
+  );
+
+  const summary=document.getElementById("detailSummary");
+  const box=document.getElementById("detailReports");
+
+  if(!code){
+    summary.innerHTML=`<div class="detail-empty">Pilih <b>Kode Kelompok UPA</b> untuk menampilkan detail laporan.</div>`;
+    box.innerHTML=`<div class="detail-empty">Setelah kode dipilih, laporan per tanggal/pekan akan muncul di sini.</div>`;
+    document.getElementById("detailStatus").textContent=`${detailGroups.length.toLocaleString("id-ID")} kegiatan UPA terbaca dari Form Responses 1.`;
+    return;
+  }
+
+  const masterPb=pembinaByCode.get(code)||"-";
+  summary.innerHTML=`
+    <div class="detail-head">
+      <div class="detail-info"><small>Kode Kelompok UPA</small><b>${esc(kodeRows.find(x=>normalizeCode(x)===code)||"-")}</b></div>
+      <div class="detail-info"><small>Nama Pembina</small><b>${esc(masterPb)}</b></div>
+      <div class="detail-info"><small>Jumlah Laporan</small><b>${groups.length}</b></div>
+      <div class="detail-info"><small>Filter Pekan</small><b>${week?`Pekan ${week}`:"Semua pekan"}</b></div>
+    </div>`;
+
+  if(!groups.length){
+    box.innerHTML=`<div class="detail-empty">Belum ada laporan untuk kode, bulan, dan pekan yang dipilih.</div>`;
+    document.getElementById("detailStatus").textContent="Tidak ada laporan yang cocok.";
+    return;
+  }
+
+  document.getElementById("detailStatus").textContent=`Menampilkan ${groups.length} kegiatan untuk ${masterPb}.`;
+
+  box.innerHTML=groups.map(g=>{
+    const running=norm(g.condition).includes("berjalan") && !norm(g.condition).includes("tidakberjalan");
+    const badge=running?`<span class="badge badge-run">UPA BERJALAN</span>`:`<span class="badge badge-stop">${esc(g.condition||"UPA TIDAK BERJALAN")}</span>`;
+    const img=driveImageUrl(g.photo);
+    const photo=img
+      ? `<a href="${esc(driveOpenUrl(g.photo))}" target="_blank" rel="noopener"><img src="${esc(img)}" alt="Dokumentasi UPA" onerror="this.style.display='none';this.parentElement.querySelector('.photo-fallback').style.display='block'"></a><div class="photo-fallback" style="display:none">Foto tidak dapat ditampilkan langsung. <a href="${esc(driveOpenUrl(g.photo))}" target="_blank">Buka dokumentasi</a></div>`
+      : `<span>Belum ada dokumentasi</span>`;
+
+    const rows=g.members.map((m,i)=>{
+      const st=norm(m.status);
+      let cls=st.includes("hadir")?"hadir":st.includes("izin")?"izin":st.includes("sakit")?"sakit":"lain";
+      return `<tr><td>${i+1}</td><td>${esc(m.name)}</td><td class="${cls}">${esc(m.status)}</td></tr>`;
+    }).join("");
+
+    return `<article class="report-card" id="report-${esc(g.key.replace(/[^a-zA-Z0-9_-]/g,"-"))}">
+      <div class="report-title">
+        <div><h3>${esc(g.code)} — Pekan ${g.week}</h3><div style="color:#64748b;margin-top:4px">${esc(fmtDate(g.date))} • ${esc(g.material||"Materi belum diisi")}</div></div>
+        <div>${badge}</div>
+      </div>
+      <div class="report-grid">
+        <div>
+          <div class="detail-info" style="margin-bottom:10px"><small>Alasan Tidak UPA</small><b>${esc(g.reason||"-")}</b></div>
+          <div class="photo-box">${photo}</div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 9px">👥 Kehadiran Peserta (${g.members.length})</h3>
+          <div class="table-wrap">
+            <table class="att-table"><thead><tr><th>No</th><th>Nama Binaan</th><th>Keterangan</th></tr></thead><tbody>
+              ${rows || `<tr><td colspan="3">Tidak ada data peserta.</td></tr>`}
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px">
+        <button class="print-btn" onclick="printReport('${esc(g.key)}')">🖨️ Cetak Laporan Ini</button>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+function printReport(key){
+  const g=detailGroups.find(x=>x.key===key);
+  if(!g) return;
+
+  const attendance=g.members.map((m,i)=>`<tr><td>${i+1}</td><td>${esc(m.name)}</td><td>${esc(m.status)}</td></tr>`).join("");
+  const img=driveImageUrl(g.photo);
+  const running=norm(g.condition).includes("berjalan") && !norm(g.condition).includes("tidakberjalan");
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Laporan UPA ${esc(g.code)}</title>
+  <style>
+  body{font-family:Arial,sans-serif;margin:35px;color:#172033}h1{font-size:21px;margin:0}h2{font-size:16px;margin:5px 0 20px}
+  .line{border-top:2px solid #123b7a;margin:12px 0 20px}.info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+  .box{padding:10px;background:#f8fafc;border-radius:7px}.box small{display:block;color:#64748b}.photo{text-align:center;margin:15px 0}.photo img{max-width:100%;max-height:430px}
+  table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #cbd5e1;padding:8px}th{background:#e2e8f0;text-align:left}
+  .sig{margin-top:45px;text-align:right}@media print{button{display:none}}
+  </style></head><body>
+  <h1>DIVISI MANAJEMEN TARBIYAH</h1><h2>BKAP DPD PKS KARIMUN</h2><div class="line"></div>
+  <div class="info">
+    <div class="box"><small>Kode Kelompok UPA</small><b>${esc(g.code)}</b></div>
+    <div class="box"><small>Nama Pembina</small><b>${esc(g.pb)}</b></div>
+    <div class="box"><small>Tanggal UPA</small><b>${esc(fmtDate(g.date))}</b></div>
+    <div class="box"><small>Pekan</small><b>Pekan ${g.week}</b></div>
+    <div class="box"><small>Materi / KKP</small><b>${esc(g.material||"-")}</b></div>
+    <div class="box"><small>Kondisi UPA</small><b>${esc(g.condition||"-")}</b></div>
+  </div>
+  ${g.reason?`<div class="box"><small>Alasan Tidak UPA</small><b>${esc(g.reason)}</b></div>`:""}
+  <h3>Dokumentasi Kegiatan</h3><div class="photo">${img?`<img src="${esc(img)}">`:"Tidak ada dokumentasi"}</div>
+  <h3>Kehadiran Peserta</h3><table><thead><tr><th>No</th><th>Nama Binaan</th><th>Keterangan</th></tr></thead><tbody>${attendance}</tbody></table>
+  <div class="sig">Divisi Manajemen Tarbiyah<br><br><br><b>BKAP DPD PKS KARIMUN</b></div>
+  <script>window.onload=()=>setTimeout(()=>window.print(),500)<\/script>
+  </body></html>`;
+  const w=window.open("","_blank");
+  if(w){w.document.write(html);w.document.close();}
+}
+
+function resetDetail(){
+  document.getElementById("detailMonth").value="";
+  document.getElementById("detailCode").value="";
+  document.getElementById("detailWeek").value="";
+  renderDetail();
+}
+
+
+function populateDocumentationFilters(){
+  const mf=document.getElementById("docMonth");
+  const cf=document.getElementById("docCode");
+  const oldM=mf.value, oldC=cf.value;
+
+  const months=new Map();
+  detailGroups.forEach(g=>months.set(g.month,monthLabel(g.date)));
+  mf.innerHTML='<option value="">Semua bulan</option>';
+  [...months.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([v,t])=>{
+    mf.innerHTML+=`<option value="${esc(v)}">${esc(t)}</option>`;
+  });
+  if([...mf.options].some(o=>o.value===oldM)) mf.value=oldM;
+
+  cf.innerHTML='<option value="">Semua Kode Kelompok UPA</option>';
+  kodeRows.forEach(code=>{
+    const key=normalizeCode(code);
+    const pb=pembinaByCode.get(key)||"-";
+    cf.innerHTML+=`<option value="${esc(key)}">${esc(code)} — ${esc(pb)}</option>`;
+  });
+  if([...cf.options].some(o=>o.value===oldC)) cf.value=oldC;
+}
+
+function renderDocumentation(){
+  const mk=document.getElementById("docMonth").value;
+  const code=document.getElementById("docCode").value;
+  const week=Number(document.getElementById("docWeek").value||0);
+
+  const groups=detailGroups.filter(g=>
+    g.photo &&
+    (!mk || g.month===mk) &&
+    (!code || normalizeCode(g.code)===code) &&
+    (!week || g.week===week)
+  );
+
+  const gallery=document.getElementById("documentationGallery");
+  document.getElementById("docStatus").textContent=
+    `Menampilkan ${groups.length} dokumentasi UPA.`;
+
+  if(!groups.length){
+    gallery.innerHTML=`<div class="detail-empty" style="grid-column:1/-1">
+      Tidak ada dokumentasi yang sesuai dengan filter.
+    </div>`;
+    return;
+  }
+
+  gallery.innerHTML=groups.map(g=>{
+    const img=driveImageUrl(g.photo);
+    const open=driveOpenUrl(g.photo);
+    return `<article class="doc-card">
+      <div class="doc-photo">
+        <a href="${esc(open)}" target="_blank" rel="noopener" style="width:100%;height:100%">
+          <img src="${esc(img)}" alt="Dokumentasi ${esc(g.code)}" loading="lazy"
+               onerror="this.style.display='none';this.parentElement.parentElement.innerHTML='<div style="padding:20px;text-align:center;color:#64748b">Foto tidak dapat ditampilkan.<br><br><a href=&quot;${esc(open)}&quot; target=&quot;_blank&quot;>Buka dokumentasi</a></div>'">
+        </a>
+      </div>
+      <div class="doc-info">
+        <div class="doc-code">${esc(g.code)}</div>
+        <div class="doc-meta">
+          <b>${esc(g.pb)}</b><br>
+          ${esc(fmtDate(g.date))} • Pekan ${g.week}<br>
+          ${esc(g.material||"Materi belum diisi")} • ${esc(g.condition||"-")}
+        </div>
+        <div class="doc-actions">
+          <a href="${esc(open)}" target="_blank" rel="noopener">🔗 Buka Foto</a>
+          <a href="#report-${esc(g.key.replace(/[^a-zA-Z0-9_-]/g,"-"))}" class="secondary-link"
+             onclick="openDetailFromDoc('${esc(g.code)}','${g.week}','${esc(g.month)}')">📋 Detail</a>
+        </div>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+function openDetailFromDoc(code,week,month){
+  document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".menu-section").forEach(sec=>sec.classList.remove("active"));
+  const btn=document.querySelector('.menu-btn[data-menu="detail"]');
+  btn.classList.add("active");
+  document.getElementById("menu-detail").classList.add("active");
+  document.getElementById("detailMonth").value=month;
+  document.getElementById("detailCode").value=normalizeCode(code);
+  document.getElementById("detailWeek").value=String(week);
+  renderDetail();
+  window.scrollTo({top:0,behavior:"smooth"});
+  return false;
+}
+
+function resetDocumentation(){
+  document.getElementById("docMonth").value="";
+  document.getElementById("docCode").value="";
+  document.getElementById("docWeek").value="";
+  renderDocumentation();
+}
+
+
+(function initLogin(){
+  const USERNAME="BKAP";
+  const PASSWORD="24434";
+  const overlay=document.getElementById("loginOverlay");
+  const form=document.getElementById("loginForm");
+  const user=document.getElementById("loginUsername");
+  const pass=document.getElementById("loginPassword");
+  const err=document.getElementById("loginError");
+
+  document.body.classList.add("login-locked");
+
+  form.addEventListener("submit",function(e){
+    e.preventDefault();
+    if(user.value.trim()===USERNAME && pass.value===PASSWORD){
+      overlay.style.display="none";
+      document.body.classList.remove("login-locked");
+      sessionStorage.setItem("upa_login","1");
+    }else{
+      err.textContent="Username atau password salah.";
+      pass.value="";
+      pass.focus();
+    }
+  });
+
+  // Tetap meminta login setiap membuka file/browser session baru.
+  if(sessionStorage.getItem("upa_login")==="1"){
+    overlay.style.display="none";
+    document.body.classList.remove("login-locked");
+  }else{
+    setTimeout(()=>user.focus(),100);
+  }
+})();
+
+function initMenus(){
+  document.querySelectorAll(".menu-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
+      document.querySelectorAll(".menu-section").forEach(s=>s.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("menu-"+btn.dataset.menu).classList.add("active");
+      if(btn.dataset.menu==="detail" && !detailGroups.length) buildDetailGroups();
+      if(btn.dataset.menu==="documentation"){
+        populateDocumentationFilters();
+        renderDocumentation();
+      }
+    });
+  });
+  ["detailMonth","detailCode","detailWeek"].forEach(id=>document.getElementById(id).addEventListener("change",renderDetail));
+  ["docMonth","docCode","docWeek"].forEach(id=>document.getElementById(id).addEventListener("change",renderDocumentation));
+}
+
+function resetFilter(){document.getElementById("pembinaFilter").value="";document.getElementById("search").value="";let mf=document.getElementById("monthFilter");if(mf.options.length>1)mf.selectedIndex=1;apply()}
+["monthFilter","pembinaFilter"].forEach(id=>document.getElementById(id).addEventListener("change",apply));
+document.getElementById("search").addEventListener("input",apply);
+initMenus();
+loadData();
+</script>
+</body>
+</html>
